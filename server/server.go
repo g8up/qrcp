@@ -262,8 +262,10 @@ func New(cfg *config.Config) (*Server, error) {
 					continue
 				}
 				// Prepare the destination
-				fileName := getFileName(filepath.Base(part.FileName()), filenames)
-				out, err := os.Create(filepath.Join(app.outputDir, fileName))
+				rawName := sanitizeFilename(filepath.Base(part.FileName()))
+				fileName := getFileName(rawName, filenames)
+				destPath := filepath.Join(app.outputDir, fileName)
+				out, err := os.Create(destPath)
 				if err != nil {
 					// Output to server
 					_, _ = fmt.Fprintf(w, "Unable to create the file for writing: %s\n", err)
@@ -273,7 +275,6 @@ func New(cfg *config.Config) (*Server, error) {
 					app.stopChannel <- true
 					return
 				}
-				defer func() { _ = out.Close() }()
 				// Add name of new file
 				filenames = append(filenames, fileName)
 				// Write the content from POSTed file to the out
@@ -308,7 +309,13 @@ func New(cfg *config.Config) (*Server, error) {
 					}
 					progressBar.Add(n)
 				}
-				transferredFiles = append(transferredFiles, out.Name())
+				out.Close()
+				// Fix EXIF orientation for JPEG images so they display
+				// correctly in viewers that ignore EXIF (e.g. Windows Explorer)
+				if err := fixImageOrientation(destPath); err != nil {
+					log.Printf("Warning: unable to fix image orientation: %v", err)
+				}
+				transferredFiles = append(transferredFiles, destPath)
 			}
 			progressBar.FinishPrint("File transfer completed")
 			// Set the value of the variable to the actually transferred files

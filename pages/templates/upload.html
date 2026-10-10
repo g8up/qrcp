@@ -69,7 +69,7 @@
                     <g>
                         <g>
                             <g>
-                                <polygon fill="#F9ED32" points="31.388,227.121 154.208,165.906 158.21,181.887 250.908,132.033 250.911,171.207 
+                                <polygon fill="#F9ED32" points="31.388,227.121 154.208,165.906 158.21,181.887 250.908,132.033 250.911,171.207
                                     386.376,31.251 284.368,75.32 284.368,37.369 195.419,82.664 177.044,36.152 31.388,91.638 					"/>
                             </g>
                             <g>
@@ -187,7 +187,7 @@
                         <label for="plaintext-title">
                             Title
                         </label>
-                        <input class="form-control" id="plaintext-title">   
+                        <input class="form-control" id="plaintext-title">
                     </div>
                     <div class="form-group">
                         <label for="plaintext-text">
@@ -198,7 +198,7 @@
                 </div>
                 <div id="pasted-file-container"></div>
                 <div class="form-group">
-                    <input class="btn btn-primary form-control form-control-lg" type="submit" 
+                    <input class="btn btn-primary form-control form-control-lg" type="submit"
                         id="submit" name="submit" value="Transfer">
                 </div>
             </form>
@@ -280,10 +280,30 @@
                 }
             }
 
-            var formData = new FormData(uploadForm)
+            var formData = new FormData()
+            var fileInput = document.getElementById('files')
             var titleInput = document.getElementById('plaintext-title')
             var textInput = document.getElementById('plaintext-text')
             var textCheckbox = document.getElementById('check-send-text')
+
+            // Add files from the file input
+            // iOS Safari replaces original filenames (e.g. IMG_1234.JPG) with
+            // 32-char hex strings when uploading from the Photos library.
+            // Use file.lastModified to reconstruct a meaningful filename.
+            for (var i = 0; i < fileInput.files.length; i++) {
+                var file = fileInput.files[i]
+                var name = file.name
+                var ext = name.includes('.') ? name.substring(name.lastIndexOf('.')) : ''
+                var nameWithoutExt = name.includes('.') ? name.substring(0, name.lastIndexOf('.')) : name
+
+                if (/^[0-9a-f]{32}$/i.test(nameWithoutExt)) {
+                    var d = new Date(file.lastModified || Date.now())
+                    var pad = function(n) { return ('0' + n).slice(-2) }
+                    name = 'IMG_' + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) +
+                        '_' + pad(d.getHours()) + pad(d.getMinutes()) + pad(d.getSeconds()) + ext
+                }
+                formData.append('files', file, name)
+            }
 
             if ((titleInput.value || textInput.value) && textCheckbox.checked) {
                 var currentDate = new Date().toJSON().slice(0,19).replace(/[-T:]/g,'_')
