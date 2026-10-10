@@ -6,6 +6,10 @@
 
 Version number is defined in `cmd/version.go`.
 
+# Build
+
+go build
+
 ## Releases
 
 We are using [goreleases](https://goreleaser.com/), [nfpm](https://nfpm.goreleaser.com/) and [Github Actions](https://github.com/features/actions) to build, package and release `qrcp`.

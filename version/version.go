@@ -4,8 +4,8 @@ import "fmt"
 
 var (
 	app     = "qrcp"
-	version = "dev"
-	date    = "n/a"
+	version = "dev<g8up>"
+	date    = "2026/07/24"
 )
 
 // String returns a string representation of the build.

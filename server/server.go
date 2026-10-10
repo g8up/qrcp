@@ -313,12 +313,11 @@ func New(cfg *config.Config) (*Server, error) {
 			progressBar.FinishPrint("File transfer completed")
 			// Set the value of the variable to the actually transferred files
 			htmlVariables.File = strings.Join(transferredFiles, ", ")
-			serveTemplate("done", pages.Done, w, htmlVariables)
-			if !cfg.KeepAlive {
-				app.stopChannel <- true
-			}
+			serveTemplate("done", pages.Done(), w, htmlVariables)
+			// Do not shutdown the server if we want to support "Transfer more"
+			// The user can still stop it via Ctrl+C or closing the terminal
 		case "GET":
-			serveTemplate("upload", pages.Upload, w, htmlVariables)
+			serveTemplate("upload", pages.Upload(), w, htmlVariables)
 		}
 	})
 	// Wait for all wg to be done, then send shutdown signal
